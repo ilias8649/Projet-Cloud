@@ -14,29 +14,29 @@ connection_string = (
     'Server=tcp:companyiliasetammar.database.windows.net,1433;'
     'Database=company;'
     'Uid=iliasetammar;'
-    'Pwd=Logitech2024;'
+    'Pwd=;'
     'Encrypt=yes;'
     'TrustServerCertificate=no;'
     'Connection Timeout=30;'
 )
 
 # Configuration Azure Blob Storage
-AZURE_STORAGE_CONNECTION_STRING = "DefaultEndpointsProtocol=https;AccountName=blobpythonapp;AccountKey=Vf9hg6PC5Zhc84EFkpO/F4S3/4ekhbJRMKTu8H5v6rNO227voBU9ZB7h6OZ30S2+UEcWtnwv7O9g+ASt3K4v9w==;EndpointSuffix=core.windows.net"
+AZURE_STORAGE_CONNECTION_STRING = ""
 BLOB_CONTAINER_NAME = "images" 
 blob_service_client = BlobServiceClient.from_connection_string(AZURE_STORAGE_CONNECTION_STRING)
 
 # Configuration Azure OpenAI
 Client = AzureOpenAI(
-    api_key="1OHXolBDv4EXTX4xvs4geJasC5vQ0rsmSKrRjNsLvv2VHJ9fjyk7JQQJ99ALACHYHv6XJ3w3AAAAACOGszIH",
-    azure_endpoint="https://ammar-m4jrr4qq-eastus2.cognitiveservices.azure.com/",
+    api_key="",
+    azure_endpoint="",
     api_version="2024-08-01-preview",
     azure_deployment="gpt-35-turbo-16k"
 )
 
 # Configuration Azure Communication Services
-ACS_CONNECTION_STRING = "endpoint=https://serviceemailing656156.europe.communication.azure.com/;accesskey=BjAwSSenfHxRcLwDlR3fe913qAZ2BMITAU3pV0lKFKgjmKnJaweFJQQJ99ALACULyCpD2vV4AAAAAZCSC06j"  # Remplacez par votre clé ACS
-EMAIL_SENDER = "da952067-aa90-4451-ab15-050b49a73bf4.azurecomm.net"  # Remplacez par un email vérifié
-SENDER_NAME = "L'Administrateur"  # Remplacez par votre nom ou extraire d'une variable d'environnement
+ACS_CONNECTION_STRING = "" 
+EMAIL_SENDER = "da952067-aa90-4451-ab15-050b49a73bf4.azurecomm.net"
+SENDER_NAME = "L'Administrateur" 
 
 
 
