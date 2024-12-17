@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panneau d'Administration</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<div class="container my-4">
+    <h1 class="mb-4">Panneau d'Administration</h1>
+
+    <!-- Section des messages -->
+    {% if message %}
+    <div class="alert alert-{{ message_type }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+    </div>
+    <script>
+        // Supprimer le message après l'affichage
+        history.replaceState({}, document.title, "/");
+    </script>
+    {% endif %}
+
+    <!-- Barre de navigation avec onglets -->
+    <ul class="nav nav-tabs" id="adminTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="true">
+                <i class="fas fa-users"></i> Utilisateurs
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="teams-tab" data-bs-toggle="tab" data-bs-target="#teams" type="button" role="tab" aria-controls="teams" aria-selected="false">
+                <i class="fas fa-users-cog"></i> Équipes
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button" role="tab" aria-controls="tasks" aria-selected="false">
+                <i class="fas fa-tasks"></i> Tâches
+            </button>
+        </li>
+    </ul>
+    
+    <div class="tab-content" id="adminTabContent">
+        <!-- Onglet Utilisateurs -->
+        <div class="tab-pane fade show active" id="users" role="tabpanel" aria-labelledby="users-tab">
+            <div class="mt-4">
+                <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#createUserModal">
+                    <i class="fas fa-user-plus"></i> Créer Utilisateur
+                </button>
+                <button class="btn btn-danger mb-3" data-bs-toggle="modal" data-bs-target="#deleteUserModal">
+                    <i class="fas fa-user-minus"></i> Supprimer Utilisateur
+                </button>
+
+                <!-- Tableau des utilisateurs (à implémenter dynamiquement) -->
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nom d'utilisateur</th>
+                            <th>Email</th>
+                            <th>Admin</th>
+                            <th>Photo</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if users %}
+                            {% for user in users %}
+                            <tr>
+                                <td>{{ user.user_id }}</td>
+                                <td>{{ user.user_name }}</td>
+                                <td>{{ user.email }}</td>
+                                <td>{{ "Oui" if user.is_admin else "Non" }}</td>
+                                <td>
+                                    {% if user.image_link %}
+                                    <img src="{{ user.image_link }}" alt="Photo de {{ user.user_name }}" style="width: 50px; height: 50px; border-radius: 50%;">
+                                    {% else %}
+                                    <span>Aucune photo</span>
+                                    {% endif %}
+                                </td>                                                                                             
+                                <td>
+                                    <button
+                                        class="btn btn-sm btn-warning"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editUserModal"
+                                        data-user-id="{{ user.user_id }}"
+                                        data-user-name="{{ user.user_name }}"
+                                        data-user-email="{{ user.email }}"
+                                        data-is-admin="{{ 'true' if user.is_admin else 'false' }}">
+                                        <i class="fas fa-edit"></i> Modifier
+                                    </button>
+                                    <form method="POST" action="/delete_user" style="display:inline;">
+                                        <input type="hidden" name="user_id" value="{{ user.user_id }}">
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash-alt"></i> Supprimer
+                                        </button>
+                                    </form>
+                                </td>
+                                
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center">Aucun utilisateur trouvé.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+                
+            </div>
+        </div>
+
+        <!-- Onglet Équipes -->
+        <div class="tab-pane fade" id="teams" role="tabpanel" aria-labelledby="teams-tab">
+            <div class="mt-4">
+                <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#createTeamModal">
+                    <i class="fas fa-plus-circle"></i> Créer Équipe
+                </button>
+                <button class="btn btn-danger mb-3" data-bs-toggle="modal" data-bs-target="#deleteTeamModal">
+                    <i class="fas fa-minus-circle"></i> Supprimer Équipe
+                </button>
+
+                <!-- Tableau des équipes (à implémenter dynamiquement) -->
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tâche Actuelle</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if teams %}
+                            {% for team in teams %}
+                            <tr>
+                                <td>{{ team.team_id }}</td>
+                                <td>{{ team.current_task or "Aucune tâche" }}</td>
+                                <td>
+                                    <button
+                                        class="btn btn-sm btn-warning"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editTeamModal"
+                                        data-team-id="{{ team.team_id }}"
+                                        data-current-task="{{ team.current_task }}">
+                                        <i class="fas fa-edit"></i> Modifier
+                                    </button>
+                                    <form method="POST" action="/delete_team" style="display:inline;">
+                                        <input type="hidden" name="team_id" value="{{ team.team_id }}">
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash-alt"></i> Supprimer
+                                        </button>
+                                    </form>
+                                </td>
+                                
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center">Aucune équipe trouvée.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+                
+            </div>
+        </div>
+
+        <!-- Onglet Tâches -->
+        <div class="tab-pane fade" id="tasks" role="tabpanel" aria-labelledby="tasks-tab">
+            <div class="mt-4">
+                <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#assignTaskModal">
+                    <i class="fas fa-plus-circle"></i> Assigner Utilisateur
+                </button>
+
+                <!-- Tableau des tâches (à implémenter dynamiquement) -->
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID Équipe</th>
+                            <th>Description de la Tâche</th>
+                            <th>Utilisateur Assigné</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if tasks %}
+                            {% for task in tasks %}
+                            <tr>
+                                <td>{{ task.team_id }}</td>
+                                <td>{{ task.current_task or "Aucune tâche" }}</td>
+                                <td>{{ task.user_name or "Non assigné" }}</td>
+                                <td>
+                                    <form method="POST" action="/remove_user_from_team" style="display:inline;">
+                                        <input type="hidden" name="team_id" value="{{ task.team_id }}">
+                                        <input type="hidden" name="user_id" value="{{ task.user_id }}">
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash-alt"></i> Supprimer
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center">Aucune tâche trouvée.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                    
+                </table>                                
+            </div>
+        </div>
+    </div>
+
+    <!-- Modales -->
+
+    <!-- Modal Créer Utilisateur -->
+    <div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="/create_user" enctype="multipart/form-data">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createUserModalLabel"><i class="fas fa-user-plus"></i> Créer Utilisateur</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="userName" class="form-label">Nom d'utilisateur</label>
+                            <input type="text" id="userName" name="user_name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" id="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Mot de passe</label>
+                            <input type="password" id="password" name="password" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="photo" class="form-label">Photo de l'employé</label>
+                            <input type="file" id="photo" name="photo" class="form-control" accept="image/*">
+                        </div>                        
+                        <div class="mb-3">
+                            <label for="isAdmin" class="form-label">Status (Admin/Employé)</label>
+                            <select id="isAdmin" name="is_admin" class="form-select">
+                                <option value="false">Non</option>
+                                <option value="true">Oui</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-user-plus"></i> Créer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Supprimer Utilisateur -->
+    <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="/delete_user">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteUserModalLabel"><i class="fas fa-user-minus"></i> Supprimer Utilisateur</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="deleteUserId" class="form-label">ID Utilisateur</label>
+                            <input type="number" id="deleteUserId" name="user_id" class="form-control" required>
+                        </div>
+                        <p>Assurez-vous de saisir l'ID correct de l'utilisateur à supprimer.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                        <button type="submit" class="btn btn-danger"><i class="fas fa-trash-alt"></i> Supprimer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Créer Équipe -->
+    <div class="modal fade" id="createTeamModal" tabindex="-1" aria-labelledby="createTeamModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="/create_team">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createTeamModalLabel"><i class="fas fa-plus-circle"></i> Créer Équipe</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="teamTask" class="form-label">Tâche de l'Équipe</label>
+                            <input type="text" id="teamTask" name="team_task" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-plus-circle"></i> Créer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Supprimer Équipe -->
+    <div class="modal fade" id="deleteTeamModal" tabindex="-1" aria-labelledby="deleteTeamModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="/delete_team">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteTeamModalLabel"><i class="fas fa-minus-circle"></i> Supprimer Équipe</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="deleteTeamId" class="form-label">ID Équipe</label>
+                            <input type="number" id="deleteTeamId" name="team_id" class="form-control" required>
+                        </div>
+                        <p>Assurez-vous de saisir l'ID correct de l'équipe à supprimer.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                        <button type="submit" class="btn btn-danger"><i class="fas fa-trash-alt"></i> Supprimer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Assigner Tâche -->
+    <div class="modal fade" id="assignTaskModal" tabindex="-1" aria-labelledby="assignTaskModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="/assign_user_to_team">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="assignTaskModalLabel"><i class="fas fa-plus-circle"></i> Assigner Utilisateur à une Équipe</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="teamId" class="form-label">Équipe</label>
+                            <select id="teamId" name="team_id" class="form-select" required>
+                                {% for team in teams %}
+                                <option value="{{ team.team_id }}">{{ team.team_id }} - {{ team.current_task or "Pas de tâche" }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userId" class="form-label">Utilisateur</label>
+                            <select id="userId" name="user_id" class="form-select" required>
+                                {% for user in users %}
+                                <option value="{{ user.user_id }}">{{ user.user_name }} ({{ user.email }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-user-plus"></i> Assigner</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modifier utilisateur-->
+    <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="/edit_user" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <input type="hidden" name="user_id" id="editUserId">
+                        <div class="mb-3">
+                            <label for="editUserName" class="form-label">Nom d'utilisateur</label>
+                            <input type="text" id="editUserName" name="user_name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editUserEmail" class="form-label">Email</label>
+                            <input type="email" id="editUserEmail" name="email" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editIsAdmin" class="form-label">Status (Admin/Employé)</label>
+                            <select id="editIsAdmin" name="is_admin" class="form-select">
+                                <option value="false">Non</option>
+                                <option value="true">Oui</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editPhoto" class="form-label">Photo de l'utilisateur (optionnel)</label>
+                            <input type="file" id="editPhoto" name="photo" class="form-control" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                    </div>
+                </form>                
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modifier Équipe-->
+    <div class="modal fade" id="editTeamModal" tabindex="-1" aria-labelledby="editTeamModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="/edit_team">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editTeamModalLabel"><i class="fas fa-edit"></i> Modifier Équipe</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="team_id" id="editTeamId">
+                        <div class="mb-3">
+                            <label for="editTeamTask" class="form-label">Tâche Actuelle</label>
+                            <input type="text" id="editTeamTask" name="current_task" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div> 
+</div>
+
+<script>
+    // Pré-remplir les champs pour la modal Modifier Utilisateur
+    const editUserModal = document.getElementById('editUserModal');
+    if (editUserModal) {
+        editUserModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const userId = button.getAttribute('data-user-id');
+            const userName = button.getAttribute('data-user-name');
+            const userEmail = button.getAttribute('data-user-email');
+            const isAdmin = button.getAttribute('data-is-admin');
+
+            document.getElementById('editUserId').value = userId;
+            document.getElementById('editUserName').value = userName;
+            document.getElementById('editUserEmail').value = userEmail;
+            document.getElementById('editIsAdmin').value = isAdmin;
+        });
+    }
+
+    // Pré-remplir les champs pour la modal Modifier Équipe
+    const editTeamModal = document.getElementById('editTeamModal');
+    if (editTeamModal) {
+        editTeamModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const teamId = button.getAttribute('data-team-id');
+            const currentTask = button.getAttribute('data-current-task');
+
+            document.getElementById('editTeamId').value = teamId;
+            document.getElementById('editTeamTask').value = currentTask;
+        });
+    }
+
+    // Pré-remplir les champs pour la modal Assigner Utilisateur
+    const assignUserModal = document.getElementById('assignUserModal');
+    if (assignUserModal) {
+        assignUserModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const teamId = button.getAttribute('data-team-id');
+            document.getElementById('assignTeamId').value = teamId;
+        });
+    }
+</script>
+
+
+<!-- Bootstrap 5 JS et dépendances -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
